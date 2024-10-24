@@ -9,6 +9,5 @@
         "base",
     ],
     "application": False,
-    "data": [
-    ],
+    "data": [],
 }
