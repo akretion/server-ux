@@ -9,5 +9,7 @@
         "base",
     ],
     "application": False,
-    "data": [],
+    "data": [
+        "data/multi_search_data.xml",
+    ],
 }
