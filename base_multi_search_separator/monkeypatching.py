@@ -11,9 +11,7 @@ search_original = BaseModel.search
 def search(self, domain, offset=0, limit=None, order=None, count=False):
     """Override of the Python method to remove the dependency of the unit
     fields"""
-    list_separator = self.env["ir.config_parameter"].get_param(
-        "multi_search_separator_base"
-    )
+    list_separator = ["!", ";"]
     domain_list = []
     domain_value = []
     nbr = 0

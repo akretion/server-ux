@@ -1,5 +1,3 @@
 To configure the separator you must:
-    * be in dev_mode
-    * go to Settings / technical / system parameter
-    * search multi_search_separator_base
-    * add/rm the separator
+    * edit the monkeypatching.py
+    * in the monkeypatching.py change the value of list_separator
