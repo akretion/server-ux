@@ -113,6 +113,8 @@
                                     <field name="notify_on_accepted" />
                                     <field name="notify_on_rejected" />
                                     <field name="notify_on_restarted" />
+                                    <field name="notify_user_on_accepted" />
+                                    <field name="notify_user_on_rejected" />
                                     <field name="has_comment" />
                                     <field name="notify_reminder_delay" />
                                 </group>

@@ -574,6 +574,24 @@ class TierValidation(models.AbstractModel):
             for review in reviews_to_notify:
                 rec = self.env[review.model].browse(review.res_id)
                 rec._notify_accepted_reviews()
+        # Add request user if needed
+        reviews_to_notify = self.review_ids.filtered(
+            lambda r: r.definition_id.notify_user_on_accepted
+        )
+        if reviews_to_notify:
+            subscribe = "message_subscribe"
+            if hasattr(self, subscribe):
+                getattr(self, subscribe)(
+                    partner_ids=reviews_to_notify.mapped("requested_by")
+                    .mapped("partner_id")
+                    .ids,
+                    subtype_ids=self.env.ref(
+                        self._get_accepted_notification_subtype()
+                    ).ids,
+                )
+            for review in reviews_to_notify:
+                rec = self.env[review.model].browse(review.res_id)
+                rec._notify_accepted_reviews()
 
     def _get_requested_notification_subtype(self):
         return "base_tier_validation.mt_tier_validation_requested"
@@ -713,6 +731,24 @@ class TierValidation(models.AbstractModel):
             for review in reviews_to_notify:
                 rec = self.env[review.model].browse(review.res_id)
                 rec._notify_rejected_review()
+        # Add request user if needed
+        reviews_to_notify = self.review_ids.filtered(
+            lambda r: r.definition_id.notify_user_on_rejected
+        )
+        if reviews_to_notify:
+            subscribe = "message_subscribe"
+            if hasattr(self, subscribe):
+                getattr(self, subscribe)(
+                    partner_ids=reviews_to_notify.mapped("requested_by")
+                    .mapped("partner_id")
+                    .ids,
+                    subtype_ids=self.env.ref(
+                        self._get_accepted_notification_subtype()
+                    ).ids,
+                )
+            for review in reviews_to_notify:
+                rec = self.env[review.model].browse(review.res_id)
+                rec._notify_accepted_reviews()
 
     def _notify_created_review_body(self):
         return self.env._(

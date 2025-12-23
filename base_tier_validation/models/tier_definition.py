@@ -108,6 +108,16 @@ class TierDefinition(models.Model):
         help="Bypassed (auto validated), if previous tier was validated "
         "by same reviewer",
     )
+    notify_user_on_accepted = fields.Boolean(
+        string="Notify Original User on Accepted",
+        help="If set, user who has requested will be notified by email when a "
+        "review related to this definition is accepted.",
+    )
+    notify_user_on_rejected = fields.Boolean(
+        string="Notify Original User on Rejected",
+        help="If set, the user who has requested will be notified by email when a "
+        "review related to this definition is rejected.",
+    )
 
     @api.onchange("review_type")
     def onchange_review_type(self):
