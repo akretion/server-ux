@@ -518,6 +518,27 @@ class TierValidation(models.AbstractModel):
             and vals.get(self._state_field) in self._state_to
         )
 
+    def _subscribe_safe_with_subtypes(self, partners, subtype_xmlid):
+        # The goal of this method is to avoid erasing the followed subtypes on existing
+        # followers. Because calling message_subscribe with subtypes will replace
+        # the subtypes. So if you call this on existing follower, that did create
+        # the record for instance, you would erase the "Discussion" default subtype.
+        self.ensure_one()
+        if not partners:
+            return
+        subtype = self.env.ref(subtype_xmlid)
+        for partner in partners:
+            follower = self.message_follower_ids.filtered(
+                lambda f, p=partner: f.partner_id == p
+            )
+
+            if follower:
+                follower.write({"subtype_ids": [(4, subtype.id)]})
+            else:
+                self.message_subscribe(
+                    partner_ids=partner.ids, subtype_ids=[subtype.id]
+                )
+
     def _validate_tier(self, tiers=False):
         self.ensure_one()
         tier_reviews = tiers or self.review_ids
@@ -563,13 +584,9 @@ class TierValidation(models.AbstractModel):
         if reviews_to_notify:
             subscribe = "message_subscribe"
             if hasattr(self, subscribe):
-                getattr(self, subscribe)(
-                    partner_ids=reviews_to_notify.mapped("reviewer_ids")
-                    .mapped("partner_id")
-                    .ids,
-                    subtype_ids=self.env.ref(
-                        self._get_accepted_notification_subtype()
-                    ).ids,
+                self._subscribe_safe_with_subtypes(
+                    reviews_to_notify.mapped("reviewer_ids.partner_id"),
+                    self._get_accepted_notification_subtype(),
                 )
             for review in reviews_to_notify:
                 rec = self.env[review.model].browse(review.res_id)
@@ -581,13 +598,9 @@ class TierValidation(models.AbstractModel):
         if reviews_to_notify:
             subscribe = "message_subscribe"
             if hasattr(self, subscribe):
-                getattr(self, subscribe)(
-                    partner_ids=reviews_to_notify.mapped("requested_by")
-                    .mapped("partner_id")
-                    .ids,
-                    subtype_ids=self.env.ref(
-                        self._get_accepted_notification_subtype()
-                    ).ids,
+                self._subscribe_safe_with_subtypes(
+                    reviews_to_notify.mapped("requested_by.partner_id"),
+                    self._get_accepted_notification_subtype(),
                 )
             for review in reviews_to_notify:
                 rec = self.env[review.model].browse(review.res_id)
@@ -720,13 +733,9 @@ class TierValidation(models.AbstractModel):
         if reviews_to_notify:
             subscribe = "message_subscribe"
             if hasattr(self, subscribe):
-                getattr(self, subscribe)(
-                    partner_ids=reviews_to_notify.mapped("reviewer_ids")
-                    .mapped("partner_id")
-                    .ids,
-                    subtype_ids=self.env.ref(
-                        self._get_rejected_notification_subtype()
-                    ).ids,
+                self._subscribe_safe_with_subtypes(
+                    reviews_to_notify.mapped("reviewer_ids.partner_id"),
+                    self._get_rejected_notification_subtype(),
                 )
             for review in reviews_to_notify:
                 rec = self.env[review.model].browse(review.res_id)
@@ -738,13 +747,9 @@ class TierValidation(models.AbstractModel):
         if reviews_to_notify:
             subscribe = "message_subscribe"
             if hasattr(self, subscribe):
-                getattr(self, subscribe)(
-                    partner_ids=reviews_to_notify.mapped("requested_by")
-                    .mapped("partner_id")
-                    .ids,
-                    subtype_ids=self.env.ref(
-                        self._get_accepted_notification_subtype()
-                    ).ids,
+                self._subscribe_safe_with_subtypes(
+                    reviews_to_notify.mapped("requested_by.partner_id"),
+                    self._get_accepted_notification_subtype(),
                 )
             for review in reviews_to_notify:
                 rec = self.env[review.model].browse(review.res_id)
