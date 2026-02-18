@@ -533,7 +533,7 @@ class TierValidation(models.AbstractModel):
             )
 
             if follower:
-                follower.write({"subtype_ids": [(4, subtype.id)]})
+                follower.sudo().write({"subtype_ids": [(4, subtype.id)]})
             else:
                 self.message_subscribe(
                     partner_ids=partner.ids, subtype_ids=[subtype.id]
