@@ -5,7 +5,7 @@ import logging
 
 import pytz
 
-from odoo import api, fields, models
+from odoo import Command, api, fields, models
 from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -139,7 +139,13 @@ class TierReview(models.Model):
     @api.depends(lambda self: self._get_reviewer_fields())
     def _compute_reviewer_ids(self):
         for rec in self:
-            rec.reviewer_ids = rec._get_reviewers()
+            new_ids = set(rec._get_reviewers().ids)
+            cur_ids = set(rec.reviewer_ids.ids)
+            command_list = [Command.unlink(uid) for uid in cur_ids - new_ids] + [
+                Command.link(uid) for uid in new_ids - cur_ids
+            ]
+            if command_list:
+                rec.reviewer_ids = command_list
 
     @api.depends("reviewer_ids")
     def _compute_todo_by(self):
